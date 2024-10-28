@@ -1,5 +1,5 @@
 import { PluginDefinition, setupPluginServer } from 'connery';
-import onlineSearchWithPerplexity from "./actions/onlineSearchWithPerplexity.js";
+import onlineSearchWithPerplexity from './actions/onlineSearchWithPerplexity.js';
 
 const pluginDefinition: PluginDefinition = {
   name: 'Perplexity',

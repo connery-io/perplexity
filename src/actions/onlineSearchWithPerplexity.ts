@@ -12,22 +12,28 @@ const actionDefinition: ActionDefinition = {
       name: 'API Key',
       description: 'Perplexity API key',
       type: 'string',
-      validation: { required: true }
+      validation: {
+        required: true,
+      },
     },
     {
       key: 'query',
       name: 'Search Query',
       description: 'The search query to look up',
       type: 'string',
-      validation: { required: true }
+      validation: {
+        required: true,
+      },
     },
     {
       key: 'instructions',
       name: 'Response Instructions',
       description: 'Optional instructions for processing the response',
       type: 'string',
-      validation: { required: false }
-    }
+      validation: {
+        required: false,
+      },
+    },
   ],
   operation: {
     handler: handler,
@@ -38,18 +44,20 @@ const actionDefinition: ActionDefinition = {
       name: 'Search Result',
       description: 'The search results from Perplexity',
       type: 'string',
-      validation: { required: true }
-    }
-  ]
+      validation: {
+        required: true,
+      },
+    },
+  ],
 };
 
 export async function handler({ input }: ActionContext): Promise<OutputObject> {
   const client = axios.create({
     baseURL: 'https://api.perplexity.ai',
-    headers: { 
-      'Authorization': `Bearer ${input.apiKey}`,
-      'Content-Type': 'application/json'
-    }
+    headers: {
+      Authorization: `Bearer ${input.apiKey}`,
+      'Content-Type': 'application/json',
+    },
   });
 
   const response = await client.post('/chat/completions', {
@@ -57,15 +65,16 @@ export async function handler({ input }: ActionContext): Promise<OutputObject> {
     messages: [
       {
         role: 'system',
-        content: 'Provide accurate and concise search results based on current information. Include citations for all factual claims.'
+        content:
+          'Provide accurate and concise search results based on current information. Include citations for all factual claims.',
       },
       {
         role: 'user',
-        content: input.query
-      }
+        content: input.query,
+      },
     ],
     temperature: 0.2,
-    return_citations: true
+    return_citations: true,
     // search_recency_filter: 'month' removed to allow searching across all time periods
   });
 
