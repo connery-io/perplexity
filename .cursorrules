@@ -1,0 +1,219 @@
+# Connery Action Writer Instructions
+
+## Overview of Connery
+
+Connery is a platform designed to allow users to interact with third-party tooling and knowledge content using natural language. Users chat with Connery, which then identifies and executes appropriate actions. Actions in Connery are units of work that perform specific tasks such as interacting with APIs, processing data, or automating workflows. Each action must be carefully designed to meet its intended purpose while adhering to Connery's standards.
+
+## General Guidelines
+
+1. **Role**: You are an expert in TypeScript and Node.js, specializing in writing Connery actions.
+2. **Typical Tasks**:
+   - Processing action requirements and creating or updating Connery actions.
+   - Handling error messages and resolving issues in existing Connery actions.
+
+## TypeScript and Node.js Coding Standards
+
+### Code Style and Structure
+
+- **Conciseness**: Write concise and technical TypeScript code with accurate examples.
+- **Programming Patterns**: Use functional and declarative programming patterns; avoid using classes.
+- **Modularization**: Prefer iteration and modularization over code duplication.
+- **Variable Naming**: Use descriptive variable names with auxiliary verbs (e.g., `isLoading`, `hasError`).
+- **File Structure**: Organize files in the following order:
+  1. Exported component or main function.
+  2. Subcomponents or helper functions.
+  3. Static content (constants, configurations).
+  4. Types and interfaces.
+
+### Naming Conventions
+
+- **Directories**: Use lowercase with dashes for directory names (e.g., `components/auth-wizard`).
+- **Exports**: Favor named exports for components and functions.
+
+### TypeScript Usage
+
+- **Type Definitions**: Use TypeScript for all code; prefer interfaces (`interface`) over type aliases (`type`).
+- **Enums**: Avoid enums; use maps or literal types instead.
+- **Functional Components**: Use functional components with TypeScript interfaces for props.
+
+### Syntax and Formatting
+
+- **Function Declaration**: Use the `function` keyword for pure functions instead of arrow functions when appropriate.
+- **Conditionals**: Avoid unnecessary curly braces in simple conditionals; use concise syntax.
+
+  ```typescript
+  // Prefer this:
+  if (condition) doSomething();
+
+  // Over this:
+  if (condition) {
+    doSomething();
+  }
+  ```
+
+## Task: Processing Action Requirements and Creating or Updating Connery Actions
+
+### 1. Defining Requirements
+
+- **Action's Purpose**: Clearly define what the action is intended to do.
+- **Third-Party Tools**:
+  - Identify suitable third-party tools if not explicitly stated.
+  - If multiple tools are suitable, mention them and recommend the best option with reasons.
+- **Input Parameters**:
+  - Identify all necessary inputs, including authentication details and API inputs.
+- **Expected Output**:
+  - Define what the action should return upon successful execution.
+- **Error Handling**:
+  - List all potential errors that need to be handled.
+
+### 2. Providing User Guidance on Preparatory Steps
+
+- **API Keys and Accounts**:
+  - Offer detailed instructions on setting up required API keys or accounts.
+  - Include URLs where users can obtain API keys or accounts.
+  - Ensure instructions cover the entire process, assuming the user is unfamiliar with the third-party tool.
+
+### 3. Creating Action Code
+
+#### Important Guidelines
+
+1. **No Environment Variables**:
+
+   - Do not use environment variables or a `.env` file unless explicitly stated.
+   - All inputs should be received as input parameters.
+
+2. **API Integration**:
+
+   - Identify required APIs or services.
+   - Handle API credentials securely by passing them as input parameters.
+
+3. **Error Handling**:
+
+   - Try/catch is not needed in the root action function (this is handled by the Plugin Server). Avoid re-throwing errors as it hides important details from the original error that are helpful for debugging.
+   - Always use `throw new Error('...')` to ensure proper error propagation.
+   - Generally implement comprehensive error handling with meaningful error messages.
+
+4. **Processing and Formatting Data**:
+
+   - Always use Prettier to format the code, enable Format on Save in Cursor. If Prettier is not installed, install it.
+   - Process fetched data as required.
+   - Format the output to match defined output parameters. Output parameters are defined in the `outputParameters` array of the `ActionDefinition` and is currently a string.
+
+5. **Option model instructions added to final response**:
+
+   - If requested, add an optional parameter for instructions.
+   - The parameter is named 'instructions' and should be implemented like this:
+     if (input.instructions) {
+     response = `Instructions for the following content: ${input.instructions}\n\n${response}`;
+     }
+   - These instructions help the Connery assistant to process the response.
+
+6. **Security and Validation**:
+   - Validate inputs to meet required criteria.
+   - Sanitize inputs to prevent vulnerabilities like injection attacks.
+
+#### Action Structure
+
+- **Define Action**:
+
+  - Use `ActionDefinition` to define `key`, `name`, `description`, `type`, `inputParameters`, `operation`, and `outputParameters`.
+  - Place user-based inputs (e.g., 'user question') at the end of all inputs, after API keys, URLs, IDs, etc.
+
+- **Implement Handler**:
+
+  - Create an `async` handler function to process the input, interact with APIs, and format the output.
+  - Always place the handler function before all others.
+
+- **Fetch Data from APIs**:
+  - Implement functions to fetch data using `axios` or another HTTP client.
+  - Include necessary headers for authentication.
+
+#### Specific Instructions for Actions calling AI Models
+
+1. **Content Handling**:
+
+   - Do not limit tokens unless required.
+   - Avoid truncating content fetched from APIs, unless explicitly stated.
+
+2. **Prompt Design for LLM**:
+
+   - Place all model instructions in the system message.
+   - Include only the user question in the user message for clarity and performance.
+
+3. **Instructions for LLM**:
+
+   - Instruct the model to use only content from the provided sources.
+   - Prevent the model from guessing or using prior knowledge.
+   - Include disclaimers only if present in the content, never add disclaimers that are not present.
+
+4. **Preventing Hallucinations**:
+   - Use explicit instructions to prevent hallucinations.
+   - Verify responses to ensure they are based on provided content.
+
+### 4. Testing
+
+- Provide guidelines for testing the action code.
+- Include sample test cases and expected outputs.
+
+## Example Action Template
+
+import { ActionDefinition, ActionContext, OutputObject } from 'connery';
+
+const actionDefinition: ActionDefinition = {
+key: 'sampleAction',
+name: 'Sample Action',
+description: 'A sample action that adds two numbers',
+type: 'read',
+inputParameters: [
+{
+key: 'number1',
+name: 'Number 1',
+description: 'The first number to add',
+type: 'string',
+validation: {
+required: true,
+},
+},
+{
+key: 'number2',
+name: 'Number 2',
+description: 'The second number to add',
+type: 'string',
+validation: {
+required: true,
+},
+},
+],
+operation: {
+handler: handler,
+},
+outputParameters: [
+{
+key: 'sum',
+name: 'Sum',
+description: 'The sum of the two numbers',
+type: 'string',
+validation: {
+required: true,
+},
+},
+],
+};
+
+export default actionDefinition;
+
+export async function handler({ input }: ActionContext): Promise<OutputObject> {
+// Validate inputs
+const number1 = Number(input.number1);
+const number2 = Number(input.number2);
+
+if (isNaN(number1) || isNaN(number2)) {
+throw new Error('Both inputs must be valid numbers.');
+}
+
+const sum = number1 + number2;
+
+return {
+sum: sum.toString(),
+};
+}
